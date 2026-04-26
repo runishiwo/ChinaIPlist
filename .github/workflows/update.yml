@@ -24,6 +24,6 @@ jobs:
         run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
-          git add output/cn_v4.txt output/cn_v6.txt
+          git add output/cn_v4.txt output/cn_v6.txt output/cnip.txt
           git commit -m "auto update cn ip (netaddr merge)" || echo "no changes"
           git push
