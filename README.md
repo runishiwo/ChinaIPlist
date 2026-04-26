@@ -12,6 +12,15 @@
 - `cn_v6.txt` → IPv6 中国 IP 段
 - `cnip.txt` → IPv4 + IPv6 合并去重结果
 
+
+## 📥 下载地址
+
+| 文件 | 说明 | 原始下载 (raw) | jsDelivr 加速 |
+|---|---:|---|---|
+| cn_v4.txt | IPv4 中国 IP 段 | https://raw.githubusercontent.com/runishiwo/ChinaIPlist/main/cn_v4.txt | https://cdn.jsdelivr.net/gh/runishiwo/ChinaIPlist@main/cn_v4.txt |
+| cn_v6.txt | IPv6 中国 IP 段 | https://raw.githubusercontent.com/runishiwo/ChinaIPlist/main/cn_v6.txt | https://cdn.jsdelivr.net/gh/runishiwo/ChinaIPlist@main/cn_v6.txt |
+| cnip.txt | IPv4 + IPv6 合并结果 | https://raw.githubusercontent.com/runishiwo/ChinaIPlist/main/cnip.txt | https://cdn.jsdelivr.net/gh/runishiwo/ChinaIPlist@main/cnip.txt |
+
 ---
 
 ## 🔄 数据来源
