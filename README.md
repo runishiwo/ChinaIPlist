@@ -19,7 +19,7 @@
 本项目数据来源于以下公开项目，仅用于聚合与整理：
 
 - 17mon China IP List  
-  https://raw.githubusercontent.com/17mon/china_ip_list/master/china_ip_list.txt  
+  https://github.com/17mon/china_ip_list
 
 - gaoyifan China Operator IP  
   https://github.com/gaoyifan/china-operator-ip  
