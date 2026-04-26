@@ -1,11 +1,8 @@
-name: update-cn-ip-netaddr
+name: CNIP Full System (V4+V6+Merge+Diff)
 
 on:
   schedule:
     - cron: "0 16 * * *"   # 北京时间 00:00
-    - cron: "0 4 * * *"    # 北京时间 12:00（双保险）
-  push:
-    branches: [ main ]
   workflow_dispatch:
 
 jobs:
@@ -16,34 +13,73 @@ jobs:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      # 1. checkout
+      - uses: actions/checkout@v4
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      # 2. python
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
-      - name: Install deps
-        run: pip install requests netaddr
+      # 3. deps
+      - run: pip install requests netaddr
 
-      - name: Run build
-        run: python src/build.py
-
-      # ===== 防止无变化导致 workflow “看起来没跑” =====
-      - name: Ensure output exists
+      # 4. backup old
+      - name: Backup previous data
         run: |
           mkdir -p output
-          ls -lah output || true
+          cp output/cn_v4.txt output/prev_v4.txt || true
+          cp output/cn_v6.txt output/prev_v6.txt || true
 
-      # ===== Git 自动提交（防冲突版）=====
-      - name: Commit changes
+      # 5. build
+      - name: Build CNIP
+        run: python src/build.py
+
+      # 6. merge v4 + v6 → cnip.txt（核心）
+      - name: Merge V4 + V6
+        run: |
+          cat output/cn_v4.txt output/cn_v6.txt \
+          | sed '/^$/d' \
+          | sort -u \
+          > output/cnip.txt
+
+      # 7. diff report
+      - name: Generate Diff
+        run: |
+          echo "===== CNIP DIFF =====" > output/diff.txt
+          echo "Time: $(date '+%Y-%m-%d %H:%M:%S')" >> output/diff.txt
+          echo "" >> output/diff.txt
+
+          echo "[V4新增]" >> output/diff.txt
+          comm -13 <(sort output/prev_v4.txt) <(sort output/cn_v4.txt) >> output/diff.txt || true
+
+          echo "" >> output/diff.txt
+          echo "[V4删除]" >> output/diff.txt
+          comm -23 <(sort output/prev_v4.txt) <(sort output/cn_v4.txt) >> output/diff.txt || true
+
+          echo "" >> output/diff.txt
+          echo "[V6新增]" >> output/diff.txt
+          comm -13 <(sort output/prev_v6.txt) <(sort output/cn_v6.txt) >> output/diff.txt || true
+
+          echo "" >> output/diff.txt
+          echo "[V6删除]" >> output/diff.txt
+          comm -23 <(sort output/prev_v6.txt) <(sort output/cn_v6.txt) >> output/diff.txt || true
+
+          echo "" >> output/diff.txt
+          echo "===== SUMMARY =====" >> output/diff.txt
+          echo "V4: $(wc -l < output/cn_v4.txt)" >> output/diff.txt
+          echo "V6: $(wc -l < output/cn_v6.txt)" >> output/diff.txt
+          echo "ALL: $(wc -l < output/cnip.txt)" >> output/diff.txt
+
+      # 8. commit（强制记录）
+      - name: Commit
         run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
-          git add output/cn_v4.txt output/cn_v6.txt output/cnip.txt
 
-          git commit --allow-empty -m "CNIP update $(date '+%Y-%m-%d %H:%M:%S')"
+          git add -A
+
+          git commit --allow-empty -m "CNIP full update $(date '+%Y-%m-%d %H:%M:%S')"
 
           git pull --rebase || true
           git push || true
