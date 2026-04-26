@@ -2,7 +2,10 @@ name: update-cn-ip-netaddr
 
 on:
   schedule:
-    - cron: "3 16 * * *"
+    - cron: "0 16 * * *"   # 北京时间 00:00
+    - cron: "0 4 * * *"    # 北京时间 12:00（双保险）
+  push:
+    branches: [ main ]
   workflow_dispatch:
 
 jobs:
@@ -13,20 +16,34 @@ jobs:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
+      - name: Setup Python
+        uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
-      - run: pip install requests netaddr
+      - name: Install deps
+        run: pip install requests netaddr
 
-      - run: python src/build.py
+      - name: Run build
+        run: python src/build.py
 
-      - name: commit
+      # ===== 防止无变化导致 workflow “看起来没跑” =====
+      - name: Ensure output exists
+        run: |
+          mkdir -p output
+          ls -lah output || true
+
+      # ===== Git 自动提交（防冲突版）=====
+      - name: Commit changes
         run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
           git add output/cn_v4.txt output/cn_v6.txt output/cnip.txt
-          git commit -m "auto update cn ip (netaddr merge)" || echo "no changes"
-          git push
+
+          git commit -m "auto update cnip" || echo "no changes"
+
+          git pull --rebase || true
+          git push || true
