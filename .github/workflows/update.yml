@@ -16,7 +16,7 @@ jobs:
       # 1. 拉代码
       - uses: actions/checkout@v4
 
-      # 2. Python环境
+      # 2. Python
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
@@ -24,13 +24,10 @@ jobs:
       # 3. 依赖
       - run: pip install requests netaddr
 
-      # 4. 生成IP
+      # 4. 生成 CNIP
       - run: python src/build.py
 
-      # 5. 确保目录
-      - run: mkdir -p output
-
-      # 6. Git提交（强制记录）
+      # 5. Git提交
       - name: Commit changes
         run: |
           git config user.name "github-actions"
