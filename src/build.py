@@ -3,9 +3,9 @@ from netaddr import IPNetwork, cidr_merge
 
 SOURCE_FILE = "data/sources.txt"
 
-OUT_V4 = "output/cn_v4.txt"
-OUT_V6 = "output/cn_v6.txt"
-OUT_ALL = "output/cnip.txt"
+OUT_V4 = "cn_v4.txt"
+OUT_V6 = "cn_v6.txt"
+OUT_ALL = "cnip.txt"
 
 
 def fetch(url):
@@ -58,7 +58,7 @@ def main():
     all_merged = cidr_merge(v4_list + v6_list)
 
     # =========================
-    # 输出文件
+    # 输出文件（根目录）
     # =========================
     with open(OUT_V4, "w", encoding="utf-8") as f:
         f.write("\n".join(str(i) for i in v4_merged))
