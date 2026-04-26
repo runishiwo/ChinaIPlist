@@ -1,4 +1,4 @@
-name: update-cn-ip
+name: update-cn-ip-netaddr
 
 on:
   schedule:
@@ -16,7 +16,7 @@ jobs:
         with:
           python-version: "3.11"
 
-      - run: pip install requests
+      - run: pip install requests netaddr
 
       - run: python src/build.py
 
@@ -24,6 +24,6 @@ jobs:
         run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
-          git add output/cn_ip.txt
-          git commit -m "auto update cn ip" || echo "no changes"
+          git add output/cn_v4.txt output/cn_v6.txt
+          git commit -m "auto update cn ip (netaddr merge)" || echo "no changes"
           git push
