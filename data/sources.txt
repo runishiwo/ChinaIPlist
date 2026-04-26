@@ -3,3 +3,4 @@ https://raw.githubusercontent.com/gaoyifan/china-operator-ip/ip-lists/china.txt
 https://www.ipdeny.com/ipblocks/data/countries/cn.zone
 https://raw.githubusercontent.com/SnowCore8/IPChinaList/refs/heads/master/china_ip.txt
 http://www.iwik.org/ipcountry/CN.cidr
+https://raw.githubusercontent.com/gaoyifan/china-operator-ip/refs/heads/ip-lists/china46.txt
