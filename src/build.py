@@ -1,48 +1,54 @@
 import requests
 from netaddr import IPNetwork, cidr_merge
+from datetime import datetime, timedelta, timezone
 import os
 
-# 路径建议使用相对路径或从环境变量读取
+# ================= 配置区 =================
 SOURCE_FILE = "data/sources.txt"
 OUT_V4 = "cn_v4.txt"
 OUT_V6 = "cn_v6.txt"
 OUT_ALL = "cnip.txt"
 
-def fetch(url):
+# 获取北京时间 (UTC+8)
+def get_beijing_time():
+    tz_bj = timezone(timedelta(hours=8))
+    return datetime.now(tz_bj).strftime("%Y-%m-%d %H:%M:%S")
+
+def fetch_ips(url):
     """
-    拉取远程 IP 列表，针对 GitHub Actions 环境增加了超时和重试逻辑
+    拉取远程 IP 列表并进行基础清洗
     """
     try:
         headers = {
-            'User-Agent': 'Mozilla/5.0 (GitHubActions; ip-aggregator-script)'
+            'User-Agent': 'Mozilla/5.0 (GitHubActions; ChinaIPList-Builder)'
         }
-        # 增加超时控制，防止 GitHub Action 被卡死
+        print(f"正在拉取: {url}")
         r = requests.get(url, timeout=30, headers=headers)
         if r.status_code == 200:
             return r.text.splitlines()
         else:
-            print(f"::warning ::无法拉取源 {url}, 状态码: {r.status_code}")
+            print(f"::warning ::状态码异常 [{r.status_code}]: {url}")
     except Exception as e:
-        print(f"::error ::请求异常 {url} -> {e}")
+        print(f"::error ::请求失败: {url} -> {e}")
     return []
 
 def main():
     v4_set = set()
     v6_set = set()
+    now_str = get_beijing_time()
 
-    # 1. 检查源文件
+    # 1. 读取源文件
     if not os.path.exists(SOURCE_FILE):
+        # 如果文件不存在，尝试创建一个示例或报错
         print(f"::error ::找不到源文件: {SOURCE_FILE}")
         return
 
-    # 2. 读取源 URL
     with open(SOURCE_FILE, "r", encoding="utf-8") as f:
-        urls = [i.strip() for i in f if i.strip() and not i.startswith("#")]
+        urls = [line.strip() for line in f if line.strip() and not line.startswith("#")]
 
-    # 3. 多源数据整合
+    # 2. 循环拉取并解析
     for url in urls:
-        print(f"正在同步: {url}")
-        lines = fetch(url)
+        lines = fetch_ips(url)
         count = 0
         for line in lines:
             line = line.strip()
@@ -50,7 +56,7 @@ def main():
                 continue
             
             try:
-                # 预处理行内注释（如 1.1.1.0/24 # ChinaTelecom）
+                # 预处理行内注释
                 clean_ip = line.split('#')[0].strip()
                 net = IPNetwork(clean_ip)
                 if net.version == 4:
@@ -60,37 +66,41 @@ def main():
                 count += 1
             except:
                 continue
-        print(f"  -> 已解析 {count} 条记录")
+        print(f"  -> 成功解析 {count} 条")
 
-    print(f"正在进行 0 误伤聚合 (V4: {len(v4_set)}, V6: {len(v6_set)})...")
+    print(f"\n正在进行 0 误伤聚合 (原始总数: {len(v4_set) + len(v6_set)})...")
 
-    # 4. CIDR 0 误伤合并 (netaddr 会处理重叠、包含和连续网段)
+    # 3. 0 误伤逻辑合并 (netaddr 自动处理包含和连续段)
     v4_merged = cidr_merge(list(v4_set))
     v6_merged = cidr_merge(list(v6_set))
 
-    # 5. 写入结果
-    # 写入 IPv4
+    # 4. 写入结果 (带时间戳注释)
+    # --- 写入 IPv4 ---
     with open(OUT_V4, "w", encoding="utf-8") as f:
+        f.write(f"# CN IPv4 List | Last Update: {now_str} (CST)\n")
         f.write("\n".join(str(i) for i in v4_merged) + "\n")
 
-    # 写入 IPv6
+    # --- 写入 IPv6 ---
     with open(OUT_V6, "w", encoding="utf-8") as f:
+        f.write(f"# CN IPv6 List | Last Update: {now_str} (CST)\n")
         f.write("\n".join(str(i) for i in v6_merged) + "\n")
 
-    # 写入全量文件 (合并 V4 和 V6)
+    # --- 写入全量文件 (V4 + V6) ---
     with open(OUT_ALL, "w", encoding="utf-8") as f:
+        f.write(f"# CN All IP List | Last Update: {now_str} (CST)\n")
         for i in v4_merged:
             f.write(str(i) + "\n")
         for i in v6_merged:
             f.write(str(i) + "\n")
 
-    # 6. GitHub Action 日志摘要
-    print("\n" + "="*32)
-    print(f"聚合完成统计:")
-    print(f"IPv4: {len(v4_merged)} 条")
-    print(f"IPv6: {len(v6_merged)} 条")
-    print(f"总计: {len(v4_merged) + len(v6_merged)} 条")
-    print("="*32)
+    # 5. 打印统计摘要
+    print("\n" + "="*40)
+    print(f"运行时间: {now_str}")
+    print(f"聚合后 IPv4 条数: {len(v4_merged)}")
+    print(f"聚合后 IPv6 条数: {len(v6_merged)}")
+    print(f"总计规则条数: {len(v4_merged) + len(v6_merged)}")
+    print("="*40)
+    print("::notice ::所有文件已成功生成并注入北京时间戳。")
 
 if __name__ == "__main__":
     main()
