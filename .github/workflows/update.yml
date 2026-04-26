@@ -28,14 +28,15 @@ jobs:
       - run: python src/build.py
 
       # 5. Git提交
-      - name: Commit changes
+      - name: Commit and Push
         run: |
-          git config user.name "github-actions"
-          git config user.email "actions@github.com"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          git add -A
-
-          git commit --allow-empty -m "CNIP update $(date '+%Y-%m-%d %H:%M:%S')"
-
-          git pull --rebase || true
-          git push || true
+          git add .
+          
+          # 只要内容有变（时间戳变了），就会提交成功
+          # 如果没变（基本不可能，因为有时间戳），则跳过 commit 避免报错
+          git diff --staged --quiet || git commit -m "CNIP update $(date -d '8 hours' '+%Y-%m-%d %H:%M:%S')"
+          
+          git push origin main
