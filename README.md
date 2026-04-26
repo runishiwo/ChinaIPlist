@@ -1,6 +1,7 @@
 # CNIP List Auto Build
 
 本项目用于每日自动汇总中国大陆 IP 段（IPv4 / IPv6），并进行 CIDR 去重与合并，生成统一 CNIP 列表。
+结合ikuai-bypass项目，自动导入ikuai IP分组内
 
 ---
 
