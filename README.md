@@ -15,9 +15,9 @@
 
 | 文件 | 说明 | 原始下载 (raw) | jsDelivr 加速 |
 |---|---:|---:|---:|
-| cn_v4.txt | IPv4 中国 IP 段 | [raw 下载](https://raw.githubusercontent.com/runishiwo/ChinaIPlist/main/cn_v4.txt) | [jsDelivr](https://cdn.jsdelivr.net/gh/runishiwo/ChinaIPlist@main/cn_v4.txt) |
-| cn_v6.txt | IPv6 中国 IP 段 | [raw 下载](https://raw.githubusercontent.com/runishiwo/ChinaIPlist/main/cn_v6.txt) | [jsDelivr](https://cdn.jsdelivr.net/gh/runishiwo/ChinaIPlist@main/cn_v6.txt) |
-| cnip.txt  | IPv4 + IPv6  | [raw 下载](https://raw.githubusercontent.com/runishiwo/ChinaIPlist/main/cnip.txt)  | [jsDelivr](https://cdn.jsdelivr.net/gh/runishiwo/ChinaIPlist@main/cnip.txt)  |
+| cn_v4.txt | IPv4 | [直链](https://raw.githubusercontent.com/runishiwo/ChinaIPlist/main/cn_v4.txt) | [jsDelivr](https://cdn.jsdelivr.net/gh/runishiwo/ChinaIPlist@main/cn_v4.txt) |
+| cn_v6.txt | IPv6 | [直链](https://raw.githubusercontent.com/runishiwo/ChinaIPlist/main/cn_v6.txt) | [jsDelivr](https://cdn.jsdelivr.net/gh/runishiwo/ChinaIPlist@main/cn_v6.txt) |
+| cnip.txt  | IPv4 + IPv6  | [直链](https://raw.githubusercontent.com/runishiwo/ChinaIPlist/main/cnip.txt)  | [jsDelivr](https://cdn.jsdelivr.net/gh/runishiwo/ChinaIPlist@main/cnip.txt)  |
 
 ---
 
