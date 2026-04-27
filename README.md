@@ -13,7 +13,7 @@
 - `cnip.txt` → IPv4 + IPv6 合并去重结果
 
 
-| 文件 | 说明 | 原始下载 (raw) | jsDelivr 加速 |
+| 文件 | 说明 | 直链 | 加速 |
 |---|---:|---:|---:|
 | cn_v4.txt | IPv4 | [直链](https://raw.githubusercontent.com/runishiwo/ChinaIPlist/main/cn_v4.txt) | [jsDelivr](https://cdn.jsdelivr.net/gh/runishiwo/ChinaIPlist@main/cn_v4.txt) |
 | cn_v6.txt | IPv6 | [直链](https://raw.githubusercontent.com/runishiwo/ChinaIPlist/main/cn_v6.txt) | [jsDelivr](https://cdn.jsdelivr.net/gh/runishiwo/ChinaIPlist@main/cn_v6.txt) |
