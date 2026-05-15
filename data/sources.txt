@@ -4,3 +4,5 @@ https://www.ipdeny.com/ipblocks/data/countries/cn.zone
 https://raw.githubusercontent.com/SnowCore8/IPChinaList/refs/heads/master/china_ip.txt
 http://www.iwik.org/ipcountry/CN.cidr
 https://raw.githubusercontent.com/Loyalsoldier/geoip/release/text/cn.txt
+https://ispip.clang.cn/all_cn_ipv46_apnic.txt
+https://ispip.clang.cn/all_cn_ipv46.txt
