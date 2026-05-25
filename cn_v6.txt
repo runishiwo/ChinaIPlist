@@ -1,4 +1,4 @@
-# CN IPv6 List | Last Update: 2026-05-24 17:46:41 (CST)
+# CN IPv6 List | Last Update: 2026-05-25 19:41:06 (CST)
 2001:250::/30
 2001:254::/31
 2001:256::/32
