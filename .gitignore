@@ -1,0 +1,6 @@
+# 本地开发/Agent 工作目录，不属于项目文件
+.workbuddy/
+
+# Python 缓存
+__pycache__/
+*.pyc

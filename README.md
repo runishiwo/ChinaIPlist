@@ -38,10 +38,16 @@
   https://github.com/SnowCore8/IPChinaList  
 
 - IWIK IP Country List  
-  http://www.iwik.org/ipcountry/CN.cidr  
+  https://www.iwik.org/ipcountry/CN.cidr  
 
 - Loyalsoldier GeoIP CN List  
   https://github.com/Loyalsoldier/geoip  
+
+- ispip.clang.cn All CN IP (APNIC)  
+  https://ispip.clang.cn/all_cn_ipv46_apnic.txt  
+
+- ispip.clang.cn All CN IP  
+  https://ispip.clang.cn/all_cn_ipv46.txt  
 
 ---
 
@@ -51,6 +57,7 @@
 - IPv4 / IPv6 分离处理
 - 自动 CIDR merge 去重
 - 最终合并生成 cnip.txt
+- 内置防呆：任一版本结果为空、条数低于安全阈值或相比线上异常缩水时，自动中止构建，**不会清空已发布列表**
 
 ---
 
@@ -74,6 +81,7 @@
 - SnowCore8
 - IWIK
 - Loyalsoldier
+- ispip.clang.cn
 
 没有这些项目，本工具无法实现。
 
