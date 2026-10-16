@@ -5,6 +5,11 @@ on:
     - cron: "0 8 * * *"
   workflow_dispatch:
 
+# 防止定时/手动触发叠跑导致 push 互踩（排队执行，不取消进行中的构建）
+concurrency:
+  group: cnip-auto-update
+  cancel-in-progress: false
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -21,8 +26,8 @@ jobs:
         with:
           python-version: "3.11"
 
-      # 3. 依赖
-      - run: pip install requests netaddr
+      # 3. 依赖（版本锁定，保证构建可复现）
+      - run: pip install -r requirements.txt
 
       # 4. 生成 CNIP
       - run: python src/build.py
@@ -35,8 +40,8 @@ jobs:
 
           git add .
           
-          # 只要内容有变（时间戳变了），就会提交成功
-          # 如果没变（基本不可能，因为有时间戳），则跳过 commit 避免报错
+          # 只要数据体有变（build.py 已确保无变化时连文件都不写），就会提交成功
+          # 数据无变化时暂存区为空，自动跳过 commit 避免报错
           git diff --staged --quiet || git commit -m "CNIP update $(date -d '8 hours' '+%Y-%m-%d %H:%M:%S')"
           
           git push origin main

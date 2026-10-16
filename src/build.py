@@ -86,6 +86,24 @@ def count_existing(path):
     except OSError:
         return None
 
+def write_list(path, header, networks):
+    """
+    写入结果文件；数据体与已有文件一致时保留原文件不动（连时间戳也不刷新），
+    避免数据零变化的日期产生无意义提交。返回是否有写入。
+    """
+    body = "\n".join(str(n) for n in networks) + "\n"
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            old_lines = [l for l in f.read().splitlines(keepends=True) if not l.startswith("#")]
+        if "".join(old_lines) == body:
+            return False
+    except OSError:
+        pass
+    with open(path, "w", encoding="utf-8") as f:
+        f.write(header)
+        f.write(body)
+    return True
+
 def main():
     session = build_session()
     v4_set = set()
@@ -153,23 +171,14 @@ def main():
         print(f"::error ::本次有 {len(failed_sources)}/{len(urls)} 个源未贡献数据: {failed_sources}")
 
     # 5. 写入结果 (带时间戳注释)
-    # --- 写入 IPv4 ---
-    with open(OUT_V4, "w", encoding="utf-8") as f:
-        f.write(f"# CN IPv4 List | Last Update: {now_str} (UTC+8)\n")
-        f.write("\n".join(str(i) for i in v4_merged) + "\n")
-
-    # --- 写入 IPv6 ---
-    with open(OUT_V6, "w", encoding="utf-8") as f:
-        f.write(f"# CN IPv6 List | Last Update: {now_str} (UTC+8)\n")
-        f.write("\n".join(str(i) for i in v6_merged) + "\n")
-
-    # --- 写入全量文件 (V4 + V6) ---
-    with open(OUT_ALL, "w", encoding="utf-8") as f:
-        f.write(f"# CN All IP List | Last Update: {now_str} (UTC+8)\n")
-        for i in v4_merged:
-            f.write(str(i) + "\n")
-        for i in v6_merged:
-            f.write(str(i) + "\n")
+    written = []
+    if write_list(OUT_V4, f"# CN IPv4 List | Last Update: {now_str} (UTC+8)\n", v4_merged):
+        written.append(OUT_V4)
+    if write_list(OUT_V6, f"# CN IPv6 List | Last Update: {now_str} (UTC+8)\n", v6_merged):
+        written.append(OUT_V6)
+    if write_list(OUT_ALL, f"# CN All IP List | Last Update: {now_str} (UTC+8)\n",
+                  list(v4_merged) + list(v6_merged)):
+        written.append(OUT_ALL)
 
     # 6. 打印统计摘要
     print("\n" + "=" * 40)
@@ -179,8 +188,12 @@ def main():
     print(f"总计规则条数: {len(v4_merged) + len(v6_merged)}")
     if failed_sources:
         print(f"异常源数量: {len(failed_sources)}/{len(urls)}（见上方 ::error 标注）")
+    if written:
+        print(f"本次更新文件: {', '.join(written)}")
+    else:
+        print("数据无变化，所有文件保持原样（不产生新提交）")
     print("=" * 40)
-    print("::notice ::所有文件已成功生成并注入北京时间戳。")
+    print("::notice ::构建完成。")
 
 if __name__ == "__main__":
     main()

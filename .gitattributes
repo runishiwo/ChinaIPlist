@@ -1,0 +1,2 @@
+# 统一使用 LF，避免 Windows autocrlf 把数据文件转成 CRLF 造成整文件假 diff
+*.txt text eol=lf
