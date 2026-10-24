@@ -1,6 +1,7 @@
 import ipaddress
 import os
 import sys
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta, timezone
 
 import requests
@@ -60,6 +61,14 @@ def fetch_ips(session, url):
         print(f"::error ::请求失败: {url} -> {e}")
     return None
 
+def fetch_all(session, urls):
+    """
+    并发拉取所有源，总耗时取决于最慢的一个而非所有源之和。
+    返回与 urls 顺序一致的行列表（拉取失败为 None），保证后续解析顺序稳定。
+    """
+    with ThreadPoolExecutor(max_workers=len(urls)) as pool:
+        return list(pool.map(lambda url: fetch_ips(session, url), urls))
+
 def parse_cidr(text):
     """
     解析单行 CIDR，返回规范网段的 netaddr IPNetwork；无法解析返回 None。
@@ -99,7 +108,7 @@ def write_list(path, header, networks):
             return False
     except OSError:
         pass
-    with open(path, "w", encoding="utf-8") as f:
+    with open(path, "w", encoding="utf-8", newline="\n") as f:
         f.write(header)
         f.write(body)
     return True
@@ -118,13 +127,12 @@ def main():
     with open(SOURCE_FILE, "r", encoding="utf-8") as f:
         urls = [line.strip() for line in f if line.strip() and not line.startswith("#")]
 
-    # 2. 循环拉取并解析
+    # 2. 并发拉取，再按源文件顺序逐个解析统计
     failed_sources = []
-    for url in urls:
-        lines = fetch_ips(session, url)
+    for url, lines in zip(urls, fetch_all(session, urls)):
         if lines is None:
             failed_sources.append(url)
-            print("  -> 拉取失败（已自动重试），跳过")
+            print(f"  -> 拉取失败（已自动重试），跳过: {url}")
             continue
         count = dropped = 0
         for line in lines:
@@ -140,7 +148,7 @@ def main():
             elif net.version == 6:
                 v6_set.add(net)
             count += 1
-        print(f"  -> 成功解析 {count} 条" + (f"，丢弃 {dropped} 条无法解析" if dropped else ""))
+        print(f"  -> 成功解析 {count} 条: {url}" + (f"，丢弃 {dropped} 条无法解析" if dropped else ""))
         if count == 0:
             # 拉到了内容但一条都没解析出来，同样按失败源记录
             failed_sources.append(url)
