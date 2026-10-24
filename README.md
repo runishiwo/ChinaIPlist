@@ -49,6 +49,15 @@
 - ispip.clang.cn All CN IP  
   https://ispip.clang.cn/all_cn_ipv46.txt  
 
+- mayaxcn China IP List  
+  https://github.com/mayaxcn/china-ip-list  
+
+- metowolf IPList (China)  
+  https://github.com/metowolf/iplist  
+
+- pmkol EasyMosdns China IP List  
+  https://github.com/pmkol/easymosdns  
+
 ---
 
 ## ⚙️ 处理方式
@@ -88,6 +97,9 @@
 - IWIK
 - Loyalsoldier
 - ispip.clang.cn
+- mayaxcn
+- metowolf
+- pmkol
 
 没有这些项目，本工具无法实现。
 
