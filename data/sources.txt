@@ -8,5 +8,4 @@ https://ispip.clang.cn/all_cn_ipv46_apnic.txt
 https://ispip.clang.cn/all_cn_ipv46.txt
 https://raw.githubusercontent.com/mayaxcn/china-ip-list/master/chnroute.txt
 https://raw.githubusercontent.com/mayaxcn/china-ip-list/master/chnroute_v6.txt
-https://gaoyifan.github.io/china-operator-ip/china46.txt
 https://metowolf.github.io/iplist/data/special/china.txt
