@@ -58,6 +58,11 @@
 - pmkol EasyMosdns China IP List  
   https://github.com/pmkol/easymosdns  
 
+以下为黑名单，合并时会从结果中剔除：
+
+- pmkol EasyMosdns GFW Blacklist  
+  https://github.com/pmkol/easymosdns  
+
 ---
 
 ## ⚙️ 处理方式
@@ -65,6 +70,7 @@
 - 使用 `netaddr` 进行 CIDR 解析
 - IPv4 / IPv6 分离处理
 - 自动 CIDR merge 去重
+- 自动剔除黑名单（GFW 被墙网段，源清单见 `data/blacklist.txt`）：最终结果 = CN 并集 − 黑名单；黑名单源失效时仅告警并跳过剔除，不阻断构建
 - 最终合并生成 cnip.txt
 - 内置防呆：任一版本结果为空、条数低于安全阈值或相比线上异常缩水时，自动中止构建，**不会清空已发布列表**
 

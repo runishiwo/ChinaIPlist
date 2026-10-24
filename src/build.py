@@ -5,12 +5,14 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta, timezone
 
 import requests
-from netaddr import IPNetwork, cidr_merge, AddrFormatError
+from netaddr import IPNetwork, IPSet, cidr_merge, AddrFormatError
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
 # ================= 配置区 =================
 SOURCE_FILE = "data/sources.txt"
+# 黑名单源（可选）：聚合出的 CN 网段会先剔除其中的黑名单网段再输出
+BLACKLIST_FILE = "data/blacklist.txt"
 OUT_V4 = "cn_v4.txt"
 OUT_V6 = "cn_v6.txt"
 OUT_ALL = "cnip.txt"
@@ -87,6 +89,48 @@ def parse_cidr(text):
     except ValueError:
         return None
 
+def parse_lines(lines):
+    """解析行列表并按版本分组，返回 (IPv4 集合, IPv6 集合, 成功条数, 丢弃条数)"""
+    v4, v6 = set(), set()
+    count = dropped = 0
+    for line in lines:
+        line = line.strip()
+        if not line or line.startswith(("#", ";", "//")):
+            continue
+        net = parse_cidr(line)
+        if net is None:
+            dropped += 1
+            continue
+        if net.version == 4:
+            v4.add(net)
+        elif net.version == 6:
+            v6.add(net)
+        count += 1
+    return v4, v6, count, dropped
+
+def fetch_blacklist(session):
+    """
+    拉取黑名单源（可选功能，BLACKLIST_FILE 不存在则视为未启用）。
+    返回 (IPv4 集合, IPv6 集合)；单个源失效仅告警并用剩余源继续，
+    全部失效时返回空集合（由调用方决定跳过剔除）。
+    """
+    v4, v6 = set(), set()
+    with open(BLACKLIST_FILE, "r", encoding="utf-8") as f:
+        urls = [line.strip() for line in f if line.strip() and not line.startswith("#")]
+    for url in urls:
+        lines = fetch_ips(session, url)
+        if lines is None:
+            print(f"::warning ::黑名单源拉取失败，仅用其余黑名单源剔除: {url}")
+            continue
+        s4, s6, count, dropped = parse_lines(lines)
+        if count == 0:
+            print(f"::warning ::黑名单源 0 条有效数据，仅用其余黑名单源剔除: {url}")
+            continue
+        v4 |= s4
+        v6 |= s6
+        print(f"  -> 黑名单解析 {count} 条: {url}")
+    return v4, v6
+
 def count_existing(path):
     """统计已有结果文件的条目数（跳过注释与空行），文件不存在返回 None"""
     try:
@@ -134,20 +178,9 @@ def main():
             failed_sources.append(url)
             print(f"  -> 拉取失败（已自动重试），跳过: {url}")
             continue
-        count = dropped = 0
-        for line in lines:
-            line = line.strip()
-            if not line or line.startswith(("#", ";", "//")):
-                continue
-            net = parse_cidr(line)
-            if net is None:
-                dropped += 1
-                continue
-            if net.version == 4:
-                v4_set.add(net)
-            elif net.version == 6:
-                v6_set.add(net)
-            count += 1
+        s4, s6, count, dropped = parse_lines(lines)
+        v4_set |= s4
+        v6_set |= s6
         print(f"  -> 成功解析 {count} 条: {url}" + (f"，丢弃 {dropped} 条无法解析" if dropped else ""))
         if count == 0:
             # 拉到了内容但一条都没解析出来，同样按失败源记录
@@ -156,6 +189,18 @@ def main():
     # 3. 0 误伤逻辑合并 (netaddr 自动处理包含和连续段)
     v4_merged = cidr_merge(list(v4_set))
     v6_merged = cidr_merge(list(v6_set))
+
+    # 3.5 黑名单剔除（可选）：从聚合结果中减去黑名单网段，差集仍是最简 CIDR 形式
+    blacklist_enabled = os.path.exists(BLACKLIST_FILE)
+    if blacklist_enabled:
+        bl_v4, bl_v6 = fetch_blacklist(session)
+        if bl_v4 or bl_v6:
+            before = len(v4_merged) + len(v6_merged)
+            v4_merged = list((IPSet(v4_merged) - IPSet(bl_v4)).iter_cidrs())
+            v6_merged = list((IPSet(v6_merged) - IPSet(bl_v6)).iter_cidrs())
+            print(f"黑名单剔除完成: {before} 条 -> {len(v4_merged) + len(v6_merged)} 条")
+        else:
+            print("::warning ::黑名单源全部失效，本次构建不做剔除")
 
     # 4. 防呆校验：任何异常都直接中止，绝不写文件、绝不提交，保留线上旧列表
     if not v4_merged or not v6_merged:

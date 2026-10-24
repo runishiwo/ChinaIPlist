@@ -1,0 +1,2 @@
+# 黑名单源：聚合结果会先剔除这些网段再输出（每行一个 URL，# 开头为注释）
+https://raw.githubusercontent.com/pmkol/easymosdns/rules/gfw_ip_list.txt
